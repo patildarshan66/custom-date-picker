@@ -17,3 +17,7 @@ TextStyle fontFFontF12({Color? color}){
 TextStyle fontLFontL1({Color? color}){
   return TextStyle(fontSize: 14,fontWeight: FontWeight.w500,color: color ?? blackTextColor);
 }
+
+TextStyle fontLFontL2({Color? color}){
+  return TextStyle(fontSize: 12,fontWeight: FontWeight.w500,color: color ?? blackTextColor);
+}

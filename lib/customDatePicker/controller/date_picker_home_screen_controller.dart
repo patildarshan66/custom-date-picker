@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
-class DatePickerHomeScreenController extends GetxController{
+class DatePickerHomeScreenController extends GetxController {
 
   DateTime? withoutPresetDate;
   DateTime? withFourPresetDate;

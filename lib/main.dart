@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'customDatePicker/screens/date_picker_home_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+      const MyApp(),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,12 +17,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Custom Date Picker',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: primaryColor,
         textTheme: GoogleFonts.robotoTextTheme(
           Theme.of(context).textTheme,
         ),
-        // primarySwatch: primaryColor,
       ),
       home: DatePickerHomeScreen(),
     );
