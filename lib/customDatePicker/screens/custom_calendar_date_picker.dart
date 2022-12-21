@@ -9,11 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+import '../../utils/colors.dart';
+import '../../utils/custom_text_style.dart';
+
 
 const Duration _monthScrollDuration = Duration(milliseconds: 200);
 
 const double _dayPickerRowHeight = 42.0;
-const int _maxDayPickerRowCount = 6; // A 31 day month that starts on Saturday.
+const int _maxDayPickerRowCount = 5; // A 31 day month that starts on Saturday.
 // One extra row for the day-of-week header.
 const double _maxDayPickerHeight = _dayPickerRowHeight * (_maxDayPickerRowCount + 1);
 const double _monthPickerHorizontalPadding = 8.0;
@@ -263,6 +266,12 @@ class _CustomCalendarDatePickerState extends State<CustomCalendarDatePicker> {
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
           selectableDayPredicate: widget.selectableDayPredicate,
+          mode: _mode,
+          title:_localizations.formatMonthYear(_currentDisplayedMonthDate),
+          onTitlePressed: () {
+            // Toggle the day/year mode.
+            _handleModeChanged(_mode == DatePickerMode.day ? DatePickerMode.year : DatePickerMode.day);
+          },
         );
       case DatePickerMode.year:
         return Padding(
@@ -291,15 +300,6 @@ class _CustomCalendarDatePickerState extends State<CustomCalendarDatePicker> {
           height: _subHeaderHeight + _maxDayPickerHeight,
           child: _buildPicker(),
         ),
-        // Put the mode toggle button on top so that it won't be covered up by the _MonthPicker
-        _DatePickerModeToggleButton(
-          mode: _mode,
-          title: _localizations.formatMonthYear(_currentDisplayedMonthDate),
-          onTitlePressed: () {
-            // Toggle the day/year mode.
-            _handleModeChanged(_mode == DatePickerMode.day ? DatePickerMode.year : DatePickerMode.day);
-          },
-        ),
       ],
     );
   }
@@ -314,6 +314,8 @@ class _DatePickerModeToggleButton extends StatefulWidget {
     required this.mode,
     required this.title,
     required this.onTitlePressed,
+    required this.onLeftPressed,
+    required this.onRightPressed,
   });
 
   /// The current display of the calendar picker.
@@ -324,6 +326,8 @@ class _DatePickerModeToggleButton extends StatefulWidget {
 
   /// The callback when the title is pressed.
   final VoidCallback onTitlePressed;
+  final VoidCallback onLeftPressed;
+  final VoidCallback onRightPressed;
 
   @override
   _DatePickerModeToggleButtonState createState() => _DatePickerModeToggleButtonState();
@@ -367,6 +371,7 @@ class _DatePickerModeToggleButtonState extends State<_DatePickerModeToggleButton
       padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
       height: _subHeaderHeight,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Flexible(
             child: Semantics(
@@ -375,38 +380,32 @@ class _DatePickerModeToggleButtonState extends State<_DatePickerModeToggleButton
               button: true,
               child: SizedBox(
                 height: _subHeaderHeight,
-                child: InkWell(
-                  onTap: widget.onTitlePressed,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: <Widget>[
-                        Flexible(
-                          child: Text(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      InkWell(onTap:widget.onLeftPressed,child: const Icon(Icons.arrow_left_rounded,size: 40,color: Color(0xff949C9E),)),
+                       Flexible(
+                         child:InkWell(
+                            onTap: widget.onTitlePressed,
+                            child: Text(
                             widget.title,
                             overflow: TextOverflow.ellipsis,
-                            style: textTheme.subtitle2?.copyWith(
-                              color: controlColor,
-                            ),
+                            style: fontAFontA8()
                           ),
                         ),
-                        RotationTransition(
-                          turns: _controller,
-                          child: Icon(
-                            Icons.arrow_drop_down,
-                            color: controlColor,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      InkWell(onTap:widget.onRightPressed,child: const Icon(Icons.arrow_right_rounded,size: 40,color: Color(0xff949C9E),)),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-          if (widget.mode == DatePickerMode.day)
-          // Give space for the prev/next month buttons that are underneath this row
-            const SizedBox(width: _monthNavButtonsWidth),
+          // if (widget.mode == DatePickerMode.day)
+          // // Give space for the prev/next month buttons that are underneath this row
+          //   const SizedBox(width: _monthNavButtonsWidth),
         ],
       ),
     );
@@ -430,6 +429,9 @@ class _MonthPicker extends StatefulWidget {
     required this.selectedDate,
     required this.onChanged,
     required this.onDisplayedMonthChanged,
+    required this.mode,
+    required this.title,
+    required this.onTitlePressed,
     this.selectableDayPredicate,
   }) : assert(selectedDate != null),
         assert(currentDate != null),
@@ -472,6 +474,15 @@ class _MonthPicker extends StatefulWidget {
 
   /// Optional user supplied predicate function to customize selectable days.
   final SelectableDayPredicate? selectableDayPredicate;
+
+  /// The current display of the calendar picker.
+  final DatePickerMode mode;
+
+  /// The text that displays the current month/year being viewed.
+  final String title;
+
+  /// The callback when the title is pressed.
+  final VoidCallback onTitlePressed;
 
   @override
   _MonthPickerState createState() => _MonthPickerState();
@@ -744,27 +755,15 @@ class _MonthPickerState extends State<_MonthPicker> {
 
     return Semantics(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Container(
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
-            height: _subHeaderHeight,
-            child: Row(
-              children: <Widget>[
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  color: controlColor,
-                  tooltip: _isDisplayingFirstMonth ? null : previousTooltipText,
-                  onPressed: _isDisplayingFirstMonth ? null : _handlePreviousMonth,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  color: controlColor,
-                  tooltip: _isDisplayingLastMonth ? null : nextTooltipText,
-                  onPressed: _isDisplayingLastMonth ? null : _handleNextMonth,
-                ),
-              ],
-            ),
+          _DatePickerModeToggleButton(
+            mode: widget.mode,
+            title: widget.title,
+            onLeftPressed: _isDisplayingFirstMonth ? (){} : _handlePreviousMonth,
+            onRightPressed: _isDisplayingLastMonth ? (){} : _handleNextMonth,
+            onTitlePressed: widget.onTitlePressed,
           ),
           Expanded(
             child: FocusableActionDetector(
@@ -925,7 +924,7 @@ class _DayPickerState extends State<_DayPicker> {
   List<Widget> _dayHeaders(TextStyle? headerStyle, MaterialLocalizations localizations) {
     final List<Widget> result = <Widget>[];
     for (int i = localizations.firstDayOfWeekIndex; true; i = (i + 1) % 7) {
-      final String weekday = localizations.narrowWeekdays[i];
+      final String weekday = localizations.shortWeekdays[i];
       result.add(ExcludeSemantics(
         child: Center(child: Text(weekday, style: headerStyle)),
       ));
@@ -941,14 +940,14 @@ class _DayPickerState extends State<_DayPicker> {
     final MaterialLocalizations localizations = MaterialLocalizations.of(context);
     final TextTheme textTheme = Theme.of(context).textTheme;
     final TextStyle? headerStyle = textTheme.caption?.apply(
-      color: colorScheme.onSurface.withOpacity(0.60),
+      color: colorScheme.onSurface.withOpacity(0.87),
     );
     final TextStyle dayStyle = textTheme.caption!;
     final Color enabledDayColor = colorScheme.onSurface.withOpacity(0.87);
     final Color disabledDayColor = colorScheme.onSurface.withOpacity(0.38);
     final Color selectedDayColor = colorScheme.onPrimary;
-    final Color selectedDayBackground = colorScheme.primary;
-    final Color todayColor = colorScheme.primary;
+    const Color selectedDayBackground = primaryColor;//colorScheme.primary;
+    const Color todayColor = primaryColor; //colorScheme.primary;
 
     final int year = widget.displayedMonth.year;
     final int month = widget.displayedMonth.month;
@@ -988,13 +987,15 @@ class _DayPickerState extends State<_DayPicker> {
           // The current day gets a different text color and a circle stroke
           // border.
           dayColor = todayColor;
-          decoration = BoxDecoration(
-            border: Border.all(color: todayColor),
-            shape: BoxShape.circle,
-          );
+          decoration = null;
+          // BoxDecoration(
+          //   border: Border.all(color: todayColor),
+          //   shape: BoxShape.circle,
+          // );
         }
 
         Widget dayWidget = Container(
+          margin: const EdgeInsets.all(7),
           decoration: decoration,
           child: Center(
             child: Text(localizations.formatDecimal(day), style: dayStyle.apply(color: dayColor)),

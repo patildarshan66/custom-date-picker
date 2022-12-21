@@ -1,4 +1,6 @@
+import 'package:custom_date_picker/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'customDatePicker/screens/date_picker_home_screen.dart';
 
@@ -14,9 +16,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Custom Date Picker',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: primaryColor,
+        textTheme: GoogleFonts.robotoTextTheme(
+          Theme.of(context).textTheme,
+        ),
+        // primarySwatch: primaryColor,
       ),
-      home: const DatePickerHomeScreen(),
+      home: DatePickerHomeScreen(),
     );
   }
 }

@@ -1,7 +1,3 @@
-// Copyright 2014 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart' show DragStartBehavior;
@@ -9,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+import '../../utils/colors.dart';
+import '../../utils/custom_text_style.dart';
 import 'custom_calendar_date_picker.dart';
-
 
 const Size _calendarPortraitDialogSize = Size(330.0, 518.0);
 const Size _calendarLandscapeDialogSize = Size(496.0, 346.0);
@@ -429,7 +426,7 @@ class _CustomDatePickerDialogState extends State<CustomDatePickerDialog> with Re
     // layout issues.
     final double textScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 1.3);
 
-    final String dateText = localizations.formatMediumDate(_selectedDate.value);
+    final String dateText = localizations.formatShortDate(_selectedDate.value);
     final Color onPrimarySurface = colorScheme.brightness == Brightness.light
         ? colorScheme.onPrimary
         : colorScheme.onSurface;
@@ -438,21 +435,30 @@ class _CustomDatePickerDialogState extends State<CustomDatePickerDialog> with Re
         : textTheme.headline4?.copyWith(color: onPrimarySurface);
 
     final Widget actions = Container(
-      alignment: AlignmentDirectional.centerEnd,
+      alignment: AlignmentDirectional.centerStart,
       constraints: const BoxConstraints(minHeight: 52.0),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: OverflowBar(
-        spacing: 8,
-        children: <Widget>[
-          TextButton(
-            onPressed: _handleCancel,
-            child: Text(widget.cancelText ?? localizations.cancelButtonLabel),
-          ),
-          TextButton(
-            onPressed: _handleOk,
-            child: Text(widget.confirmText ?? localizations.okButtonLabel),
-          ),
-        ],
+      // padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.only(bottom: 16,left: 16,right: 16),
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.event_rounded,color: primaryColor,size: 20),
+            const SizedBox(width: 12),
+            Text(dateText,style: fontFFontF12(),),
+            const Spacer(),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(elevation: 0,primary: lightSkyBlueColor),
+              onPressed: _handleCancel,
+              child: Text(widget.cancelText ?? localizations.cancelButtonLabel,style: fontLFontL1(color:primaryColor),),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(primary:  primaryColor),
+              onPressed: _handleOk,
+              child: Text(widget.confirmText ?? localizations.okButtonLabel,style: fontLFontL1(color:Colors.white)),
+            ),
+          ],
       ),
     );
 
@@ -549,9 +555,12 @@ class _CustomDatePickerDialogState extends State<CustomDatePickerDialog> with Re
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
       clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+      ),
       child: AnimatedContainer(
         width: dialogSize.width,
-        height: dialogSize.height,
+        // height: dialogSize.height,
         duration: _dialogSizeAnimationDuration,
         curve: Curves.easeIn,
         child: MediaQuery(
@@ -565,8 +574,8 @@ class _CustomDatePickerDialogState extends State<CustomDatePickerDialog> with Re
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    header,
-                    Expanded(child: picker),
+                    // header,
+                     picker,
                     actions,
                   ],
                 );
@@ -575,7 +584,7 @@ class _CustomDatePickerDialogState extends State<CustomDatePickerDialog> with Re
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    header,
+                    // header,
                     Flexible(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -1934,7 +1943,7 @@ class _DayHeaders extends StatelessWidget {
   List<Widget> _getDayHeaders(TextStyle headerStyle, MaterialLocalizations localizations) {
     final List<Widget> result = <Widget>[];
     for (int i = localizations.firstDayOfWeekIndex; true; i = (i + 1) % 7) {
-      final String weekday = localizations.narrowWeekdays[i];
+      final String weekday = localizations.shortWeekdays[i];
       result.add(ExcludeSemantics(
         child: Center(child: Text(weekday, style: headerStyle)),
       ));
